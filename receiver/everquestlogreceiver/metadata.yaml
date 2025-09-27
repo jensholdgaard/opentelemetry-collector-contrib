@@ -1,0 +1,14 @@
+type: everquestlog
+
+status:
+  class: receiver
+  stability:
+    beta: [logs]
+  distributions: [contrib]
+  codeowners:
+    active: []
+    seeking_new: true
+
+tests:
+  config:
+    include: [ testdata/simple.log ]
