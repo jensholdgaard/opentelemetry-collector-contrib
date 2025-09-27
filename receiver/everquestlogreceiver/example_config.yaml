@@ -1,0 +1,65 @@
+# Example OpenTelemetry Collector configuration using the EverQuest log receiver
+
+receivers:
+  everquestlog:
+    # Monitor EverQuest log files (adjust path to your EverQuest installation)
+    include:
+      - /path/to/everquest/Logs/eqlog_*.txt
+      - /path/to/everquest/Logs/eqlog_*_*.txt
+    
+    # Exclude old/archived log files
+    exclude:
+      - /path/to/everquest/Logs/*_old.txt
+      - /path/to/everquest/Logs/*_backup.txt
+    
+    # Set timezone to match your EverQuest client's timezone
+    # Use "Local" for system timezone or specific IANA timezone names
+    location: "America/New_York"
+    
+    # Start reading from the beginning of existing files
+    start_at: beginning
+    
+    # Poll for changes every 100ms for real-time monitoring
+    poll_interval: 100ms
+    
+    # Retry configuration for reliable log delivery
+    retry_on_failure:
+      enabled: true
+      initial_interval: 1s
+      max_interval: 30s
+      max_elapsed_time: 5m
+
+processors:
+  # Add resource attributes to identify the source
+  resource:
+    attributes:
+      - key: service.name
+        value: "everquest-logs"
+        action: insert
+      - key: log.source
+        value: "everquest-game"
+        action: insert
+
+exporters:
+  # Export to console for debugging
+  logging:
+    loglevel: info
+  
+  # Export to OTLP endpoint (adjust as needed)
+  otlp:
+    endpoint: "http://localhost:4317"
+    insecure: true
+
+service:
+  pipelines:
+    logs:
+      receivers: [everquestlog]
+      processors: [resource]
+      exporters: [logging, otlp]
+  
+  # Enable telemetry for monitoring the collector itself
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      address: localhost:8888
